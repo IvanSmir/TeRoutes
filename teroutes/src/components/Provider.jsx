@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { ProductContext, UserContext } from "./Context";
+import PropTypes from 'prop-types';
+
 
 export const UserProvider = ({ children }) => {
     const [users, setUsers] = useState([]);  
@@ -18,3 +20,12 @@ export const ProductsProvider = ({ children }) => {
       </ProductContext.Provider >
     );
   };
+
+  UserProvider.propTypes = {
+    children: PropTypes.node.isRequired,
+  };
+  
+  ProductsProvider.propTypes = {
+    children: PropTypes.node.isRequired,
+  };
+  
