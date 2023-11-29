@@ -2,6 +2,7 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "../libs/axios";
 import { UserContext } from "./Context";
+import { toast } from "sonner";
 
 const UserForm = () => {
     const { id } = useParams();
@@ -13,10 +14,22 @@ const UserForm = () => {
     useEffect(() => {
         if (id != undefined) {
             console.log("xd")
-            axios.get(`/users/${id}`).then((response) => {
-                let userresponse = response?.data?.data;
-                setUser(userresponse);
-            })
+            toast.promise(
+                axios
+                    .get(`/users/${id}`)
+                    .then((resp) => {
+                        let person = resp.data.data;
+                        setUser(person);
+                    })
+                    .catch((error) => {
+                        console.error("Error al obtener la lista:", error);
+                    }),
+                {
+                    loading: "Cargando...",
+                    success: "Usuario Cargado",
+                    error: "Error",
+                }
+            );
         }
     }, [id, setUser])
     const handleFirstNameChange = useCallback(
@@ -24,29 +37,67 @@ const UserForm = () => {
             setUser({ ...user, first_name: e.target.value })
         }, [user, setUser]
     )
+
+
     const handleLastNameChange = useCallback(
         (e) => {
             setUser({ ...user, last_name: e.target.value })
         }, [user, setUser]
     )
+
+
     const handleAvatarChange = useCallback(
         (e) => {
             setUser({ ...user, avatar: e.target.value })
         }, [user, setUser]
     )
+
+
     const handleSubmit = useCallback((e)=>{
         e.preventDefault();
         if (id == undefined) {
             const newUser = { ...user, id: users.length > 0 ? users[users.length - 1].id + 1 : 1 };
-            let newUserList = [...users, newUser]
-            setUsers(newUserList);
+
+            toast.promise(axios
+                .post("users", newUser)
+                .then((response) => {
+                  const addUser = response.data;
+                  setUsers([...users, addUser]);
+                  navigate("/usuarios")                  
+                })
+                .catch((error) => {
+                  console.error("Error al crear el usuario:", error);
+                  throw error
+                }), {
+                loading: "Cargando...",
+                success: "Usuario agregado",
+                error: "Error",
+              });
+
         } else {
-            console.log(user)
-            let newUserList = users.map((userOld) => userOld.id === user.id ? user : userOld)
-            setUsers(newUserList);
+            toast.promise(axios
+                .put(`users/${id}`, user)
+                .then((response) => {
+                  const updatedUser = { ...user, ...response.data };
+                  setUsers(
+                    users.map((userOld) =>
+                      userOld.id === user.id ? updatedUser : userOld
+                    )
+                  );
+                  navigate("/usuarios")
+                })
+                .catch((error) => {
+                  console.error("Error al actualizar el usuario:", error);
+                }), {
+                  loading: "Cargando...",
+                success: "Usuario editado",
+                error: "Error",
+                })
         }
-        navigate("/usuarios")
+        
     },[users, setUsers, id, navigate, user] )
+
+
     return (
         <form onSubmit={handleSubmit}>
             <div className="mb-4">
@@ -75,7 +126,7 @@ const UserForm = () => {
             </div>
             <div className="mb-4">
                 <label htmlFor="foto" className="block text-gray-700 text-sm font-bold mb-2">
-                    Foto de Perfil:
+                    Url de la Foto de Perfil:
                 </label>
                 <input
                     type="text"

@@ -7,5 +7,7 @@ export const UserContext = createContext({
 
 export const ProductContext = createContext({
   products: [],
-  setProducts: () =>{}
+  setProducts: () =>{},
+  currentProduct: {},
+  setCurrentProduct: ()=>{}
 })
